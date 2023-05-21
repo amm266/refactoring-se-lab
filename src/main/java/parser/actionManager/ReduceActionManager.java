@@ -1,6 +1,5 @@
 package parser.actionManager;
 
-import Log.Log;
 import facadeGenerator.Generator;
 import parser.Action;
 import parser.ParseTable;
@@ -20,7 +19,6 @@ public class ReduceActionManager implements ActionManager{
         try {
             generator.generate(rule);
         } catch (Exception e) {
-            Log.print("Code Generator Error");
         }
         return false;
     }

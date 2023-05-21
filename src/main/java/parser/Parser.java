@@ -6,22 +6,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import Log.Log;
-import codeGenerator.CodeGenerator;
 import errorHandler.ErrorHandler;
 import facadeGenerator.Generator;
 import parser.actionManager.AcceptActionManager;
 import parser.actionManager.ActionManager;
 import parser.actionManager.ReduceActionManager;
 import parser.actionManager.ShiftActionManager;
-import scanner.lexicalAnalyzer;
-import scanner.token.Token;
 
 public class Parser {
     private ArrayList<Rule> rules;
     private Stack<Integer> parsStack;
     private ParseTable parseTable;
-    private Generator generator;
 
     public Parser() {
         parsStack = new Stack<Integer>();
@@ -42,16 +37,14 @@ public class Parser {
     }
 
     public void startParse(java.util.Scanner sc) {
-        generator = new Generator(sc);
+        Generator generator = new Generator(sc);
         generator.nextToken();
         boolean finish = false;
         Action currentAction;
         while (!finish) {
             try {
-                ActionManager actionManager = new ReduceActionManager();
+                ActionManager actionManager;
                 currentAction = parseTable.getActionTable(parsStack.peek(), generator.getToken());
-                Log.print(currentAction.toString());
-                //Log.print("");
 
                 switch (currentAction.action) {
                     case shift:
@@ -63,6 +56,8 @@ public class Parser {
                     case accept:
                         actionManager = new AcceptActionManager();
                         break;
+                    default:
+                        actionManager = new ShiftActionManager();
                 }
                 finish = actionManager.manage(parsStack, currentAction, generator, rules, parseTable);
             } catch (Exception ignored) {

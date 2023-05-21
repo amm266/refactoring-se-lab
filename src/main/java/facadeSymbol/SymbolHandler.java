@@ -139,6 +139,9 @@ public class SymbolHandler {
             case Bool:
                 t = varType.Bool;
                 break;
+            default:
+                t = varType.Non;
+                break;
         }
         return t;
     }

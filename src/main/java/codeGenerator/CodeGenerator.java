@@ -1,11 +1,9 @@
 package codeGenerator;
 
-import Log.Log;
 import errorHandler.ErrorHandler;
 import facadeSymbol.SymbolHandler;
 import scanner.token.Token;
 import semantic.symbol.Symbol;
-import semantic.symbol.SymbolTable;
 import semantic.symbol.SymbolType;
 
 import java.util.Stack;
@@ -30,9 +28,8 @@ public class CodeGenerator {
     }
 
     public void semanticFunction(int func, Token next) {
-        Log.print("codegenerator : " + func);
         switch (func) {
-            case 0:
+            default:
                 return;
             case 1:
                 checkID();
@@ -137,7 +134,6 @@ public class CodeGenerator {
     }
 
     private void defMain() {
-        //ss.pop();
         memory.add3AddressCode(ss.pop().num, Operation.JP, new Address(memory.getCurrentCodeBlockAddress(), varType.Address), null, null);
         symbolHandler.addMethod("main");
     }
@@ -145,7 +141,7 @@ public class CodeGenerator {
     public void checkID() {
         symbolHandler.pop();
         if (ss.peek().varType == varType.Non) {
-            //TODO : error
+            System.out.println("var type cannot be non");
         }
     }
 
@@ -176,7 +172,6 @@ public class CodeGenerator {
     }
 
     public void startCall() {
-        //TODO: method ok
         ss.pop();
         ss.pop();
         symbolHandler.startCall(callStack);
@@ -184,7 +179,6 @@ public class CodeGenerator {
     }
 
     public void call() {
-        //TODO: method ok
         String methodName = callStack.pop();
         String className = callStack.pop();
         varType t = symbolHandler.call(methodName, className);
@@ -193,15 +187,10 @@ public class CodeGenerator {
         memory.add3AddressCode(Operation.ASSIGN, new Address(temp.num, varType.Address, TypeAddress.Imidiate), new Address(symbolHandler.getMethodReturnAddress(className, methodName), varType.Address), null);
         memory.add3AddressCode(Operation.ASSIGN, new Address(memory.getCurrentCodeBlockAddress() + 2, varType.Address, TypeAddress.Imidiate), new Address(symbolHandler.getMethodCallerAddress(className, methodName), varType.Address), null);
         memory.add3AddressCode(Operation.JP, new Address(symbolHandler.getMethodAddress(className, methodName), varType.Address), null, null);
-
-        //symbolStack.pop();
     }
 
     public void arg() {
-        //TODO: method ok
-
         String methodName = callStack.pop();
-//        String className = symbolStack.pop();
         try {
             Symbol s = symbolHandler.getNextParam(callStack.peek(), methodName);
             varType t = SymbolTypeToVarType(s);
@@ -210,9 +199,6 @@ public class CodeGenerator {
                 ErrorHandler.printError("The argument type isn't match");
             }
             memory.add3AddressCode(Operation.ASSIGN, param, new Address(s.address, t), null);
-
-//        symbolStack.push(className);
-
         } catch (IndexOutOfBoundsException e) {
             ErrorHandler.printError("Too many arguments pass for method");
         }
@@ -223,14 +209,9 @@ public class CodeGenerator {
     public void assign() {
         Address s1 = ss.pop();
         Address s2 = ss.pop();
-//        try {
         if (s1.varType != s2.varType) {
             ErrorHandler.printError("The type of operands in assign is different ");
         }
-//        }catch (NullPointerException d)
-//        {
-//            d.printStackTrace();
-//        }
         memory.add3AddressCode(Operation.ASSIGN, s1, s2, null);
     }
 
@@ -265,7 +246,6 @@ public class CodeGenerator {
             ErrorHandler.printError("In mult two operands must be integer");
         }
         memory.add3AddressCode(Operation.MULT, s1, s2, temp);
-//        memory.saveMemory();
         ss.push(temp);
     }
 
@@ -371,12 +351,10 @@ public class CodeGenerator {
     }
 
     public void methodReturn() {
-        //TODO : call ok
         symbolHandler.methodReturn(ss);
     }
 
     public void defParam() {
-        //TODO : call Ok
         ss.pop();
         symbolHandler.addMethodParameter();
     }
@@ -387,9 +365,5 @@ public class CodeGenerator {
 
     public void lastTypeInt() {
         symbolHandler.setLastType(SymbolType.Int);
-    }
-
-    public void main() {
-
     }
 }

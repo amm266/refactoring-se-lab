@@ -18,13 +18,10 @@ import static semantic.symbol.SymbolType.Bool;
 public class CodeGenerator {
     private Memory memory = new Memory();
     private Stack<Address> ss = new Stack<Address>();
-    private Stack<String> symbolStack = new Stack<>();
     private Stack<String> callStack = new Stack<>();
-    private SymbolTable symbolTable;
     private SymbolHandler symbolHandler;
 
     public CodeGenerator() {
-        symbolTable = new SymbolTable(memory);
         symbolHandler = new SymbolHandler(memory);
     }
 
@@ -161,17 +158,13 @@ public class CodeGenerator {
         ss.pop();
 
         Symbol s = symbolHandler.getSymbol();
-        varType t = varType.Int;
-        switch (s.type) {
-            case Bool:
-                t = varType.Bool;
-                break;
-            case Int:
-                t = varType.Int;
-                break;
-        }
+        varType t = SymbolTypeToVarType(s);
         ss.push(new Address(s.address, t));
 
+    }
+
+    private varType SymbolTypeToVarType(Symbol s) {
+        return s.type == Bool ? varType.Bool : varType.Int;
     }
 
     public void kpid(Token next) {
@@ -211,15 +204,7 @@ public class CodeGenerator {
 //        String className = symbolStack.pop();
         try {
             Symbol s = symbolHandler.getNextParam(callStack.peek(), methodName);
-            varType t = varType.Int;
-            switch (s.type) {
-                case Bool:
-                    t = varType.Bool;
-                    break;
-                case Int:
-                    t = varType.Int;
-                    break;
-            }
+            varType t = SymbolTypeToVarType(s);
             Address param = ss.pop();
             if (param.varType != t) {
                 ErrorHandler.printError("The argument type isn't match");

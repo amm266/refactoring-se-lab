@@ -10,6 +10,10 @@ import Log.Log;
 import codeGenerator.CodeGenerator;
 import errorHandler.ErrorHandler;
 import facadeGenerator.Generator;
+import parser.actionManager.AcceptActionManager;
+import parser.actionManager.ActionManager;
+import parser.actionManager.ReduceActionManager;
+import parser.actionManager.ShiftActionManager;
 import scanner.lexicalAnalyzer;
 import scanner.token.Token;
 
@@ -44,55 +48,25 @@ public class Parser {
         Action currentAction;
         while (!finish) {
             try {
+                ActionManager actionManager = new ReduceActionManager();
                 currentAction = parseTable.getActionTable(parsStack.peek(), generator.getToken());
                 Log.print(currentAction.toString());
                 //Log.print("");
 
                 switch (currentAction.action) {
                     case shift:
-                        parsStack.push(currentAction.number);
-                        generator.nextToken();
-
+                        actionManager = new ShiftActionManager();
                         break;
                     case reduce:
-                        Rule rule = rules.get(currentAction.number);
-                        for (int i = 0; i < rule.RHS.size(); i++) {
-                            parsStack.pop();
-                        }
-
-                        Log.print(/*"state : " +*/ parsStack.peek() + "\t" + rule.LHS);
-//                        Log.print("LHS : "+rule.LHS);
-                        parsStack.push(parseTable.getGotoTable(parsStack.peek(), rule.LHS));
-                        Log.print(/*"new State : " + */parsStack.peek() + "");
-//                        Log.print("");
-                        try {
-                            generator.generate(rule);
-                        } catch (Exception e) {
-                            Log.print("Code Genetator Error");
-                        }
+                        actionManager = new ReduceActionManager();
                         break;
                     case accept:
-                        finish = true;
+                        actionManager = new AcceptActionManager();
                         break;
                 }
-                Log.print("");
+                finish = actionManager.manage(parsStack, currentAction, generator, rules, parseTable);
             } catch (Exception ignored) {
                 ignored.printStackTrace();
-//                boolean find = false;
-//                for (NonTerminal t : NonTerminal.values()) {
-//                    if (parseTable.getGotoTable(parsStack.peek(), t) != -1) {
-//                        find = true;
-//                        parsStack.push(parseTable.getGotoTable(parsStack.peek(), t));
-//                        StringBuilder tokenFollow = new StringBuilder();
-//                        tokenFollow.append(String.format("|(?<%s>%s)", t.name(), t.pattern));
-//                        Matcher matcher = Pattern.compile(tokenFollow.substring(1)).matcher(lookAhead.toString());
-//                        while (!matcher.find()) {
-//                            lookAhead = lexicalAnalyzer.getNextToken();
-//                        }
-//                    }
-//                }
-//                if (!find)
-//                    parsStack.pop();
             }
         }
         if (!ErrorHandler.hasError) generator.printMemory();
